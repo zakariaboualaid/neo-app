@@ -4,6 +4,7 @@ pipeline {
   }
   environment {
     APP_NAME = 'neo-app'
+    ENV = 'jx-dev'
     CHARTMUSEUM_CREDS = credentials('jenkins-x-chartmuseum')
   }
   stages {
@@ -11,7 +12,7 @@ pipeline {
       when {
         branch 'PR-*'
       }
-      environment {
+      environment {617782583250.dkr.ecr.us-east-2.amazonaws.com/jx-dev/neo-app
         PREVIEW_VERSION = "0.0.0-SNAPSHOT-$BRANCH_NAME-$BUILD_NUMBER"
         PREVIEW_NAMESPACE = "$APP_NAME-$BRANCH_NAME".toLowerCase()
         HELM_RELEASE = "$PREVIEW_NAMESPACE".toLowerCase()
@@ -20,7 +21,7 @@ pipeline {
         container('gradle') {
           sh "gradle clean build"
           sh "export VERSION=$PREVIEW_VERSION && skaffold build -f skaffold.yaml"
-          sh "jx step post build --image $DOCKER_REGISTRY/$APP_NAME:$PREVIEW_VERSION"
+          sh "jx step post build --image $DOCKER_REGISTRY/$ENV/$APP_NAME:$PREVIEW_VERSION"
           dir('./charts/preview') {
             sh "make preview"
             sh "jx preview --app $APP_NAME --dir ../.."
@@ -45,7 +46,7 @@ pipeline {
           sh "jx step tag --version \$(cat VERSION)"
           sh "gradle clean build"
           sh "export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml"
-          sh "jx step post build --image $DOCKER_REGISTRY/$APP_NAME:\$(cat VERSION)"
+          sh "jx step post build --image $DOCKER_REGISTRY/$ENV/$APP_NAME:\$(cat VERSION)"
         }
       }
     }
